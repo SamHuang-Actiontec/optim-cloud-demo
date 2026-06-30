@@ -11,6 +11,7 @@ import InventoryManagementPage from './components/inventory/InventoryManagementP
 import DataElementPage from './components/data/DataElementPage'
 import AccessManagementPage from './components/access/AccessManagementPage'
 import { useAuditLog } from './hooks/useAuditLog'
+import FloatingFeedback from './components/layout/FloatingFeedback'
 
 export default function App() {
   return (
@@ -68,7 +69,9 @@ function AppShell() {
       />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar activeItem={activeNav} onNavigate={navigateTo} />
-        <main className="flex-1 flex flex-col overflow-hidden">
+        <main
+          className={`flex-1 flex flex-col overflow-hidden${activeNav !== 'dashboard' ? ' page-zoom' : ''}`}
+        >
           {activeNav === 'dashboard' ? (
             <DashboardPage key={navCount} onLog={log} />
           ) : activeNav === 'network' ? (
@@ -103,6 +106,7 @@ function AppShell() {
           )}
         </main>
       </div>
+      <FloatingFeedback />
     </div>
   )
 }

@@ -431,7 +431,7 @@ const SEGMENTS = [
   'Rural Fixed Wireless',
   'Public Sector',
 ]
-const LOCATIONS = ['Seattle', 'Tacoma', 'Bellevue', 'Renton', 'Kirkland', 'Redmond', 'Sammamish', 'Issaquah']
+const LOCATIONS = ['Seattle', 'Tacoma', 'Bellevue', 'Renton', 'Kirkland', 'Redmond', 'Sammamish', 'Issaquah', 'Olympia']
 const MODELS = ['WF-720GF', 'WF-1000v3', 'WF-1000v4', 'WF-1300x']
 const TIERS = ['100M DSL', '250M Cable', '500M Cable', '500M Fiber', '1G Fiber', 'Business Plus', 'VIP / SLA Critical']
 const REGIONS = ['Seattle Metro', 'Tacoma / Pierce', 'Eastside / Snoqualmie', 'Rural North', 'Rural West']
@@ -446,6 +446,7 @@ const LOCATION_TO_REGION = {
   'Sammamish': 'Eastside / Snoqualmie',
   'Issaquah': 'Eastside / Snoqualmie',
   'Kirkland': 'Rural North',
+  'Olympia': 'Rural West',
 }
 
 function locationToRegion(loc) {
@@ -534,7 +535,6 @@ const REGION_COORDS = [
 ]
 
 export const REGION_HEALTH = REGIONS.map((region, idx) => {
-  const regionOffset = idx * 374
   const regionTotal = 374 + (idx === REGIONS.length - 1 ? TOTAL_ACCOUNTS % REGIONS.length : 0)
   
   const critical = Math.floor(CRITICAL_COUNT / REGIONS.length) + (idx === 1 ? 20 : idx === 2 ? 10 : 0)
