@@ -2,6 +2,13 @@ import { useEffect, useMemo, useRef } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { DASH_ACCOUNTS, REGION_HEALTH } from '../../data/mockDashboard'
+import { useTheme } from '../../context/ThemeContext'
+
+function tileUrl(theme) {
+  return theme === 'light'
+    ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+}
 
 const HEALTH_META = {
   healthy: { label: 'Healthy', color: '#22c55e' },
@@ -263,6 +270,7 @@ function accountPopup(account) {
 }
 
 export default function GeoMap({ onRegionSelect, onDeviceSelect }) {
+  const { theme } = useTheme()
   const mapElRef = useRef(null)
   const mapRef = useRef(null)
   const layersRef = useRef({
@@ -290,15 +298,12 @@ export default function GeoMap({ onRegionSelect, onDeviceSelect }) {
       zoomControl: true,
     })
 
-    // CartoDB Dark Matter (with labels baked into tile) — labels sit below markers so they never overlap dials
-    const tiles = L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-      {
-        subdomains: 'abcd',
-        maxZoom: 20,
-        opacity: 0.88,
-      }
-    )
+    // CartoDB tiles — dark_all in dark mode, light_all in light mode; labels baked in below marker z-index
+    const tiles = L.tileLayer(tileUrl(theme), {
+      subdomains: 'abcd',
+      maxZoom: 20,
+      opacity: 0.88,
+    })
     tiles.addTo(map)
     layersRef.current.tiles = tiles
 
@@ -313,6 +318,22 @@ export default function GeoMap({ onRegionSelect, onDeviceSelect }) {
       mapRef.current = null
     }
   }, [regions, scale])
+
+  // Swap tile layer when theme toggles
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    if (layersRef.current.tiles) {
+      map.removeLayer(layersRef.current.tiles)
+    }
+    const tiles = L.tileLayer(tileUrl(theme), {
+      subdomains: 'abcd',
+      maxZoom: 20,
+      opacity: 0.88,
+    })
+    tiles.addTo(map)
+    layersRef.current.tiles = tiles
+  }, [theme])
 
   useEffect(() => {
     const map = mapRef.current

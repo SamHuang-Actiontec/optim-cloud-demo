@@ -249,13 +249,30 @@ export default function CustomerDetailPageOperator({ customer, onBack, showNetwo
                     </div>
                   )}
                   <div className="operator-overview-actions">
-                    <button
-                      onClick={() => confirmOrRun('gateway', 'Reboot Gateway', 'Gateway reboot completed; back online', 2400)}
-                      disabled={actionState.gateway === 'running' || isPulling}
-                      className="dashboard-action-button disabled:opacity-60 disabled:cursor-wait"
-                    >
-                      {actionState.gateway === 'running' ? 'Rebooting…' : confirmingAction === 'gateway' ? 'Confirm Reboot' : 'Reboot Gateway'}
-                    </button>
+                    {confirmingAction === 'gateway' ? (
+                      <>
+                        <button
+                          onClick={() => confirmOrRun('gateway', 'Reboot Gateway', 'Gateway reboot completed; back online', 2400)}
+                          className="dashboard-action-button-confirm"
+                        >
+                          Confirm Reboot
+                        </button>
+                        <button
+                          onClick={() => setConfirmingAction(null)}
+                          className="dashboard-action-button-cancel"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => confirmOrRun('gateway', 'Reboot Gateway', 'Gateway reboot completed; back online', 2400)}
+                        disabled={actionState.gateway === 'running' || isPulling}
+                        className="dashboard-action-button disabled:opacity-60 disabled:cursor-wait"
+                      >
+                        {actionState.gateway === 'running' ? 'Rebooting…' : 'Reboot Gateway'}
+                      </button>
+                    )}
                   </div>
                 </div>
                 <div className="operator-overview-card is-wifi">
@@ -289,22 +306,58 @@ export default function CustomerDetailPageOperator({ customer, onBack, showNetwo
                     </div>
                   )}
                   <div className="operator-overview-actions">
-                    <button
-                      onClick={() => confirmOrRun('sendPw', 'Sent Wi‑Fi password', 'Delivered via verified customer channel', 1400)}
-                      disabled={actionState.sendPw === 'running' || actionState.resetPw === 'running' || isPulling}
-                      className="dashboard-action-button disabled:opacity-60 disabled:cursor-wait"
-                    >
-                      <Send size={12} />
-                      {actionState.sendPw === 'running' ? 'Sending…' : confirmingAction === 'sendPw' ? 'Confirm Send' : 'Send PW'}
-                    </button>
-                    <button
-                      onClick={() => confirmOrRun('resetPw', 'Reset Wi‑Fi password', 'Password reset completed')}
-                      disabled={actionState.sendPw === 'running' || actionState.resetPw === 'running' || isPulling}
-                      className="dashboard-action-button disabled:opacity-60 disabled:cursor-wait"
-                    >
-                      <KeyRound size={12} />
-                      {actionState.resetPw === 'running' ? 'Resetting…' : confirmingAction === 'resetPw' ? 'Confirm Reset' : 'Reset PW'}
-                    </button>
+                    {confirmingAction === 'sendPw' ? (
+                      <>
+                        <button
+                          onClick={() => confirmOrRun('sendPw', 'Sent Wi‑Fi password', 'Delivered via verified customer channel', 1400)}
+                          className="dashboard-action-button-confirm"
+                        >
+                          <Send size={12} />
+                          Confirm Send
+                        </button>
+                        <button
+                          onClick={() => setConfirmingAction(null)}
+                          className="dashboard-action-button-cancel"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : confirmingAction === 'resetPw' ? (
+                      <>
+                        <button
+                          onClick={() => confirmOrRun('resetPw', 'Reset Wi‑Fi password', 'Password reset completed')}
+                          className="dashboard-action-button-confirm"
+                        >
+                          <KeyRound size={12} />
+                          Confirm Reset
+                        </button>
+                        <button
+                          onClick={() => setConfirmingAction(null)}
+                          className="dashboard-action-button-cancel"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => confirmOrRun('sendPw', 'Sent Wi‑Fi password', 'Delivered via verified customer channel', 1400)}
+                          disabled={actionState.sendPw === 'running' || actionState.resetPw === 'running' || isPulling}
+                          className="dashboard-action-button disabled:opacity-60 disabled:cursor-wait"
+                        >
+                          <Send size={12} />
+                          {actionState.sendPw === 'running' ? 'Sending…' : 'Send PW'}
+                        </button>
+                        <button
+                          onClick={() => confirmOrRun('resetPw', 'Reset Wi‑Fi password', 'Password reset completed')}
+                          disabled={actionState.sendPw === 'running' || actionState.resetPw === 'running' || isPulling}
+                          className="dashboard-action-button disabled:opacity-60 disabled:cursor-wait"
+                        >
+                          <KeyRound size={12} />
+                          {actionState.resetPw === 'running' ? 'Resetting…' : 'Reset PW'}
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

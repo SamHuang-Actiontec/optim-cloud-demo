@@ -598,6 +598,56 @@
   background: color-mix(in srgb, var(--overview-color) 12%, rgb(var(--noc-surface)));
 }
 
+.dashboard-action-button-confirm {
+  display: inline-flex;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 10px;
+  border: 1px solid rgba(234, 179, 8, 0.55);
+  border-radius: 7px;
+  color: #fef08a;
+  background: rgba(234, 179, 8, 0.14);
+  cursor: pointer;
+  font-size: 11.5px;
+  font-weight: 850;
+  transition: color 140ms ease, border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+}
+
+.dashboard-action-button-confirm:hover {
+  border-color: rgba(234, 179, 8, 0.75);
+  color: #fde047;
+  background: rgba(234, 179, 8, 0.22);
+  box-shadow: 0 0 18px rgba(234, 179, 8, 0.18);
+}
+
+.dashboard-action-button-cancel {
+  display: inline-flex;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 12px;
+  border: 1px solid rgb(var(--noc-border) / 0.55);
+  border-radius: 7px;
+  color: rgb(var(--noc-muted));
+  background: rgb(var(--noc-raised) / 0.34);
+  cursor: pointer;
+  font-size: 11.5px;
+  font-weight: 850;
+  white-space: nowrap;
+  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.dashboard-action-button-cancel:hover {
+  border-color: rgb(var(--noc-border));
+  color: rgb(var(--noc-fg));
+  background: rgb(var(--noc-raised) / 0.55);
+}
+
 .dashboard-tool-panel {
   position: relative;
   overflow: hidden;
@@ -840,8 +890,8 @@
 
 .dashboard-seg-panel {
   display: flex;
-  height: 372px;
-  min-height: 372px;
+  height: 400px;
+  min-height: 400px;
   flex-direction: column;
   padding: 10px 12px 12px;
 }
@@ -864,7 +914,7 @@
 }
 
 .dashboard-health-card .dashboard-tool-panel {
-  flex: 1;
+  flex: none;
 }
 
 .dashboard-seg-filters {
@@ -1351,8 +1401,8 @@
 
 .dashboard-firmware-verify-panel.dashboard-tab-panel {
   display: flex;
-  height: 248px;
-  min-height: 248px;
+  height: 400px;
+  min-height: 400px;
   flex-direction: column;
 }
 
@@ -1375,7 +1425,7 @@
 
 .dashboard-fw-plot {
   position: relative;
-  height: 104px;
+  height: 72px;
   overflow: hidden;
   border: 1px solid rgb(var(--noc-border) / 0.44);
   border-radius: 8px;
@@ -1466,7 +1516,7 @@
 .dashboard-fw-evidence {
   min-height: 0;
   flex: 1;
-  margin-top: 8px;
+  margin-top: 4px;
   border: 1px solid rgb(var(--noc-border) / 0.42);
   border-radius: 8px;
   overflow-y: auto;
@@ -1477,7 +1527,7 @@
   grid-template-columns: 1.2fr 1fr auto auto;
   align-items: center;
   gap: 10px;
-  padding: 6px 9px;
+  padding: 3px 9px;
   border-top: 1px solid rgb(var(--noc-border) / 0.34);
   color: rgb(var(--noc-muted) / 0.92);
   font-size: 10px;
@@ -1614,13 +1664,17 @@
 }
 
 .dashboard-fw-evidence-row strong {
-  display: block;
   color: rgb(var(--noc-fg));
   font-size: 11px;
 }
 
-.dashboard-fw-evidence-row span {
-  display: block;
+.dashboard-fw-evidence-row > span {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 
@@ -1678,8 +1732,8 @@
 /* ── Regional heatmap - simplified SVG ────────────────────────────────────────── */
 .dashboard-region-panel {
   padding: 10px 12px;
-  height: 372px;
-  min-height: 372px;
+  height: 420px;
+  min-height: 420px;
   background: linear-gradient(135deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.3));
 }
 
@@ -1728,7 +1782,7 @@
 }
 
 .dashboard-tab-panel {
-  min-height: 372px;
+  min-height: 0;
 }
 
 @media (max-width: 1180px) {

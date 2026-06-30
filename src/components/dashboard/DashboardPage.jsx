@@ -450,13 +450,12 @@ function NetworkHealthCommand({ onOpenZone }) {
     return acc
   }, { critical: 0, degraded: 0, healthy: 0 })
 
-  const focusMax = Math.max(totals.critical, totals.degraded, 1)
-  const healthBands = [
-    { key: 'critical', label: 'Critical', count: totals.critical, width: (totals.critical / focusMax) * 100 },
-    { key: 'degraded', label: 'Degraded', count: totals.degraded, width: (totals.degraded / focusMax) * 100 },
-    { key: 'healthy', label: 'Healthy', count: totals.healthy, width: 100 },
-  ]
   const totalInScope = DASH_ACCOUNTS.length
+  const healthBands = [
+    { key: 'critical', label: 'Critical', count: totals.critical, width: (totals.critical / totalInScope) * 100 },
+    { key: 'degraded', label: 'Degraded', count: totals.degraded, width: (totals.degraded / totalInScope) * 100 },
+    { key: 'healthy', label: 'Healthy', count: totals.healthy, width: (totals.healthy / totalInScope) * 100 },
+  ]
 
   return (
     <div className="dashboard-health-card dashboard-health-card-network">
@@ -470,7 +469,7 @@ function NetworkHealthCommand({ onOpenZone }) {
         <div className="dashboard-seg-dist-head dashboard-seg-bars-head">
           <div>
             <p>Focused Health Distribution</p>
-            <span>Critical and degraded bars are proportional to each other</span>
+            <span>Bar widths reflect actual device proportions</span>
           </div>
         </div>
 
@@ -768,18 +767,12 @@ function FirmwareVerification({ onOpenFirmware }) {
                 onOpenFirmware(item.label)
               }}
             >
-              <div>
-                <strong>{item.label}</strong>
-                <span>{item.stage} · {item.count.toLocaleString()} accts · <strong>{pct}%</strong></span>
-              </div>
-              <div>
-                <span>Baseline {item.baselineHealth.toFixed(1)}</span>
-                <span>Post {item.postHealth.toFixed(1)}</span>
-              </div>
+              <span><strong>{item.label}</strong> · {pct}%</span>
+              <span>{item.stage} · {item.count.toLocaleString()} accts</span>
               <div className={item.healthDelta > 0 ? 'is-up' : 'is-down'}>
                 {item.healthDelta > 0 ? '+' : ''}{item.healthDelta.toFixed(1)} pts
               </div>
-              <div>{Math.round(item.confidence * 100)}% confidence</div>
+              <div>{Math.round(item.confidence * 100)}% conf</div>
             </button>
           )
         })}
