@@ -1,11 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { Search, X, Info, ChevronLeft, ChevronRight, Cpu, Network, BarChart3 } from 'lucide-react'
 import { useTheme } from '../../context/ThemeContext'
-import { useRole } from '../../context/RoleContext'
 import { useSearch } from '../../hooks/useSearch'
 import SearchDropdown from '../network/SearchDropdown'
-import CustomerDetailPage from '../network/detail/CustomerDetailPage'
-import CustomerDetailPageOperator from '../network/detail/CustomerDetailPageOperator'
 import GeoMap from './GeoMap'
 import { mockCustomers } from '../../data/mockCustomers'
 import {
@@ -924,10 +921,8 @@ function DashboardSearchPanel({ recentSearches, onSelectCustomer, onLog }) {
 }
 
 // ── Dashboard Page ────────────────────────────────────────────────────────────
-export default function DashboardPage({ onLog }) {
-  const { role } = useRole()
+export default function DashboardPage({ onLog, onOpenCustomer }) {
   const [recentSearches, setRecentSearches] = useState([])
-  const [selectedCustomer, setSelectedCustomer] = useState(null)
   const [showFormula, setShowFormula] = useState(false)
   const [trendRange, setTrendRange] = useState('30d')
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -968,19 +963,14 @@ export default function DashboardPage({ onLog }) {
 
   function handleSelectCustomer(c) {
     setRecentSearches(prev => [c, ...prev.filter(p => p.id !== c.id)].slice(0, 5))
-    setSelectedCustomer(c)
+    onOpenCustomer?.(c)
   }
 
   function handleOpenAccount(account) {
     const c = mockCustomers.find(c => c.serial === account.serial) || mockCustomers[0]
     onLog?.('DASHBOARD_ACCOUNT_OPENED', { serial: account.serial })
     setDrawerOpen(false)
-    setSelectedCustomer(c)
-  }
-
-  if (selectedCustomer) {
-    const DetailPage = role === 'operator' ? CustomerDetailPageOperator : CustomerDetailPage
-    return <DetailPage customer={selectedCustomer} onBack={() => setSelectedCustomer(null)} onLog={onLog} />
+    onOpenCustomer?.(c)
   }
 
   return (

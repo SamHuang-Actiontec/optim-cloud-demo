@@ -1,7 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { MessageSquarePlus, X, CheckCircle2, Trash2, GripVertical, MessageSquare } from 'lucide-react'
+import { loadComments, saveComment, updateCommentStatus, updateCommentPosition, softDeleteComment } from '../../lib/commentsDb'
 
-function DraggablePin({ pin, onMove, onResolve, onRemove }) {
+function DraggablePin({ pin, onMove, onMoveEnd, onResolve, onRemove }) {
   const [expanded, setExpanded] = useState(false)
   const [dragging, setDragging] = useState(false)
   const offset = useRef({ x: 0, y: 0 })
@@ -29,14 +30,19 @@ function DraggablePin({ pin, onMove, onResolve, onRemove }) {
       didDrag.current = true
       onMove(pin.id, ev.clientX - offset.current.x, ev.clientY - offset.current.y)
     }
-    const onMouseUp = () => {
+    const onMouseUp = (ev) => {
       setDragging(false)
       window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('mouseup', onMouseUp)
+      if (didDrag.current) {
+        const nx = ev.clientX - offset.current.x
+        const ny = ev.clientY - offset.current.y
+        onMoveEnd(pin.id, nx, ny)
+      }
     }
     window.addEventListener('mousemove', onMouseMove)
     window.addEventListener('mouseup', onMouseUp)
-  }, [pin, onMove])
+  }, [pin, onMove, onMoveEnd])
 
   function handleChipClick(e) {
     e.stopPropagation()
@@ -83,7 +89,9 @@ function DraggablePin({ pin, onMove, onResolve, onRemove }) {
           <div className="fb-pin-card-header">
             <span className="fb-pin-card-avatar">{pin.from.charAt(0).toUpperCase()}</span>
             <strong>{pin.from}</strong>
-            {pin.resolved && <span className="fb-pin-resolved-label">Resolved</span>}
+            <span className={`fb-pin-status-badge fb-pin-status-${pin.status || 'pending'}`}>
+              {pin.status || 'pending'}
+            </span>
             <button className="fb-pin-card-close" onClick={() => setExpanded(false)}><X size={12} /></button>
           </div>
           <p>{pin.comment}</p>
@@ -114,42 +122,62 @@ export default function FloatingFeedback() {
   const [from, setFrom] = useState('')
   const [comment, setComment] = useState('')
   const [pins, setPins] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  function save() {
+  // Load persisted comments on mount
+  useEffect(() => {
+    loadComments()
+      .then(setPins)
+      .catch(err => console.error('Failed to load comments:', err))
+      .finally(() => setLoading(false))
+  }, [])
+
+  async function save() {
     const text = comment.trim()
     if (!text) return
-    setPins(prev => [...prev, {
-      id: Date.now(),
+    const newPin = {
+      id: String(Date.now()),
       from: from.trim() || 'Viewer',
       comment: text,
+      status: 'pending',
       resolved: false,
       x: Math.max(80, window.innerWidth / 2 - 100),
-      y: 120 + (prev.length % 6) * 70,
-    }])
+      y: 120 + (pins.length % 6) * 70,
+    }
+    const saved = await saveComment(newPin).catch(() => newPin)
+    setPins(prev => [...prev, saved])
     setFrom('')
     setComment('')
     setOpen(false)
   }
 
+  // Update local state immediately on drag; persist only when drag ends
   const movePin = useCallback((id, x, y) => {
     setPins(prev => prev.map(p => p.id === id ? { ...p, x, y } : p))
   }, [])
 
+  const movePinEnd = useCallback((id, x, y) => {
+    updateCommentPosition(id, x, y).catch(console.error)
+  }, [])
+
   const resolvePin = useCallback((id) => {
-    setPins(prev => prev.map(p => p.id === id ? { ...p, resolved: true } : p))
+    setPins(prev => prev.map(p => p.id === id ? { ...p, resolved: true, status: 'resolved' } : p))
+    updateCommentStatus(id, 'resolved').catch(console.error)
   }, [])
 
   const removePin = useCallback((id) => {
     setPins(prev => prev.filter(p => p.id !== id))
+    softDeleteComment(id).catch(console.error)
   }, [])
 
   return (
     <>
-      {pins.map(pin => (
+      {!loading && pins.map(pin => (
         <DraggablePin
           key={pin.id}
           pin={pin}
           onMove={movePin}
+          onMoveEnd={movePinEnd}
           onResolve={resolvePin}
           onRemove={removePin}
         />

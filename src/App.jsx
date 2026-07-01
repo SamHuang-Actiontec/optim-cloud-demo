@@ -52,6 +52,12 @@ function AppShell() {
     setActiveNav('network')
   }
 
+  function openNetworkFromDashboard(customer) {
+    setReferrer('dashboard')
+    setNetworkLaunch({ customer, token: Date.now() })
+    setActiveNav('network')
+  }
+
   const breadcrumbs = {
     dashboard: 'Dashboard',
     network:   'Network / Customer Lookup',
@@ -73,7 +79,7 @@ function AppShell() {
           className={`flex-1 flex flex-col overflow-hidden${activeNav !== 'dashboard' ? ' page-zoom' : ''}`}
         >
           {activeNav === 'dashboard' ? (
-            <DashboardPage key={navCount} onLog={log} />
+            <DashboardPage key={navCount} onLog={log} onOpenCustomer={openNetworkFromDashboard} />
           ) : activeNav === 'network' ? (
             role === 'operator' ? (
               <NetworkPageOperator
