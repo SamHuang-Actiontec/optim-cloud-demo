@@ -62,7 +62,7 @@ function AppShell() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-noc-bg overflow-hidden">
+    <div className="flex flex-col h-screen bg-noc-bg overflow-hidden" style={{ zoom: 1.15 }}>
       <TopBar
         operator={operator}
         breadcrumb={breadcrumbs[activeNav] || null}
@@ -70,7 +70,7 @@ function AppShell() {
       <div className="flex flex-1 overflow-hidden">
         <Sidebar activeItem={activeNav} onNavigate={navigateTo} />
         <main
-          className="flex-1 flex flex-col overflow-hidden page-zoom"
+          className={`flex-1 flex flex-col overflow-hidden${activeNav !== 'dashboard' ? ' page-zoom' : ''}`}
         >
           {activeNav === 'dashboard' ? (
             <DashboardPage key={navCount} onLog={log} />
