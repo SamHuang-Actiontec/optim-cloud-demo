@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { MessageSquarePlus, X, CheckCircle2, Trash2, GripVertical, MessageSquare } from 'lucide-react'
+import { MessageSquarePlus, X, CheckCircle2, Trash2, GripVertical, MessageSquare, LayoutList } from 'lucide-react'
 import { loadComments, saveComment, updateCommentStatus, updateCommentPosition, softDeleteComment } from '../../lib/commentsDb'
+import CommentsPanel from './CommentsPanel'
 
 function DraggablePin({ pin, onMove, onMoveEnd, onResolve, onRemove }) {
   const [expanded, setExpanded] = useState(false)
@@ -119,10 +120,13 @@ function DraggablePin({ pin, onMove, onMoveEnd, onResolve, onRemove }) {
 
 export default function FloatingFeedback() {
   const [open, setOpen] = useState(false)
+  const [panelOpen, setPanelOpen] = useState(false)
   const [from, setFrom] = useState('')
   const [comment, setComment] = useState('')
   const [pins, setPins] = useState([])
   const [loading, setLoading] = useState(true)
+
+  const pendingCount = pins.filter(p => p.status === 'pending' || (!p.status && !p.resolved)).length
 
   // Load persisted comments on mount
   useEffect(() => {
@@ -172,6 +176,11 @@ export default function FloatingFeedback() {
 
   return (
     <>
+      <CommentsPanel
+        open={panelOpen}
+        onClose={() => setPanelOpen(false)}
+      />
+
       {!loading && pins.map(pin => (
         <DraggablePin
           key={pin.id}
@@ -213,9 +222,22 @@ export default function FloatingFeedback() {
         </div>
       )}
 
+      {/* Comments admin button */}
+      <button
+        className={`fb-comments-fab${panelOpen ? ' is-active' : ''}`}
+        onClick={() => { setPanelOpen(o => !o); setOpen(false) }}
+        title="View all comments"
+      >
+        <LayoutList size={15} />
+        {pendingCount > 0 && (
+          <span className="fb-comments-fab-badge">{pendingCount}</span>
+        )}
+      </button>
+
+      {/* New comment FAB */}
       <button
         className={`fb-fab${open ? ' is-active' : ''}`}
-        onClick={() => setOpen(o => !o)}
+        onClick={() => { setOpen(o => !o); setPanelOpen(false) }}
         title={open ? 'Close' : 'Leave feedback'}
       >
         {open ? <X size={18} /> : <MessageSquarePlus size={18} />}
