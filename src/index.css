@@ -4920,9 +4920,9 @@ a:hover {
 .ask-ai-dialog {
   display: flex;
   flex-direction: column;
-  width: 540px;
+  width: 864px;
   max-width: 96vw;
-  max-height: 80vh;
+  max-height: 85vh;
   border: 1px solid rgba(139,92,246,0.4);
   border-radius: 16px;
   background:
@@ -5275,68 +5275,131 @@ a:hover {
 .fb-pin {
   position: fixed;
   z-index: 9002;
-  transform: translate(-50%, -50%);
   user-select: none;
-  cursor: grab;
 }
-.fb-pin.is-dragging {
+.fb-pin.is-dragging .fb-pin-chip {
   cursor: grabbing;
+  box-shadow: 0 8px 32px rgba(2, 6, 23, 0.65), 0 0 20px rgba(34, 211, 238, 0.28);
+  border-color: rgba(34, 211, 238, 0.6);
 }
 
-.fb-pin-bubble {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 2px solid #22d3ee;
-  background: rgba(2, 6, 23, 0.92);
-  backdrop-filter: blur(10px);
+/* ── Floating comment chip ────────────────────────────────────────────────── */
+.fb-pin-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 10px 0 6px;
+  border: 1px solid rgba(34, 211, 238, 0.32);
+  border-radius: 10px;
+  background: rgba(2, 6, 23, 0.93);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 4px 20px rgba(2, 6, 23, 0.52), 0 0 12px rgba(34, 211, 238, 0.10);
+  cursor: grab;
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: box-shadow 140ms, border-color 140ms;
+}
+.fb-pin-chip:hover {
+  border-color: rgba(34, 211, 238, 0.55);
+  box-shadow: 0 6px 24px rgba(2, 6, 23, 0.6), 0 0 18px rgba(34, 211, 238, 0.18);
+}
+.fb-pin-chip-grip {
+  color: rgba(148, 163, 184, 0.4);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+.fb-pin-chip-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  color: #22d3ee;
+}
+.fb-pin.is-resolved .fb-pin-chip-icon {
+  color: rgb(var(--noc-accent));
+}
+.fb-pin-chip-author {
+  font-size: 11px;
+  font-weight: 800;
+  color: #22d3ee;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+.fb-pin.is-resolved .fb-pin-chip-author {
+  color: rgb(var(--noc-accent));
+}
+.fb-pin-chip-preview {
+  font-size: 11px;
+  color: rgb(var(--noc-fg) / 0.72);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+.fb-pin-chip-close {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #22d3ee;
-  font-size: 12px;
-  font-weight: 800;
-  box-shadow: 0 4px 16px rgba(2, 6, 23, 0.48), 0 0 10px rgba(34, 211, 238, 0.20);
-  transition: box-shadow 140ms ease, transform 140ms ease;
+  width: 16px;
+  height: 16px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: rgba(148, 163, 184, 0.45);
+  cursor: pointer;
+  padding: 0;
+  transition: color 120ms, background 120ms;
 }
-.fb-pin:hover .fb-pin-bubble {
-  box-shadow: 0 4px 20px rgba(34, 211, 238, 0.28), 0 0 0 2px rgba(34, 211, 238, 0.24);
-  transform: scale(1.10);
-}
-.fb-pin.is-dragging .fb-pin-bubble {
-  box-shadow: 0 8px 32px rgba(34, 211, 238, 0.36), 0 0 0 2px rgba(34, 211, 238, 0.44);
-  transform: scale(1.14);
+.fb-pin-chip-close:hover {
+  color: rgb(var(--noc-fg));
+  background: rgba(51, 65, 85, 0.5);
 }
 
+/* ── Expanded detail card ─────────────────────────────────────────────────── */
 .fb-pin-card {
   position: absolute;
-  bottom: 40px;
-  left: 50%;
-  transform: translateX(-50%);
-  min-width: 210px;
-  max-width: 280px;
-  border: 1px solid rgb(var(--noc-border));
-  border-radius: 10px;
-  background: rgba(15, 23, 42, 0.98);
-  backdrop-filter: blur(16px);
-  padding: 11px 12px 10px;
-  box-shadow: 0 16px 40px rgba(2, 6, 23, 0.62);
+  bottom: 44px;
+  left: 0;
+  min-width: 240px;
+  max-width: 300px;
+  border: 1px solid rgba(34, 211, 238, 0.25);
+  border-radius: 12px;
+  background: rgba(10, 16, 36, 0.98);
+  backdrop-filter: blur(20px);
+  padding: 12px 13px 11px;
+  box-shadow: 0 16px 48px rgba(2, 6, 23, 0.7), 0 0 0 1px rgba(34, 211, 238, 0.08);
   cursor: default;
   z-index: 9003;
 }
 .fb-pin-card-header {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 7px;
+  gap: 7px;
+  margin-bottom: 8px;
+}
+.fb-pin-card-avatar {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(34, 211, 238, 0.4);
+  background: rgba(34, 211, 238, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+  color: #22d3ee;
 }
 .fb-pin-card-header strong {
   flex: 1;
   color: #22d3ee;
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
 }
 .fb-pin-card-close {
   display: flex;
@@ -5344,7 +5407,7 @@ a:hover {
   justify-content: center;
   border: 0;
   background: transparent;
-  color: rgb(var(--noc-muted) / 0.55);
+  color: rgb(var(--noc-muted) / 0.5);
   cursor: pointer;
   padding: 2px;
   border-radius: 4px;
@@ -5355,21 +5418,17 @@ a:hover {
   background: rgba(51, 65, 85, 0.4);
 }
 .fb-pin-card p {
-  margin: 0 0 8px;
+  margin: 0 0 9px;
   color: rgb(var(--noc-fg));
-  font-size: 11.5px;
-  line-height: 1.48;
+  font-size: 12px;
+  line-height: 1.52;
   word-break: break-word;
 }
 
-/* Resolved pin state */
-.fb-pin.is-resolved .fb-pin-bubble {
-  border-color: rgb(var(--noc-accent));
-  color: rgb(var(--noc-accent));
-  box-shadow: 0 4px 16px rgba(2, 6, 23, 0.48), 0 0 10px rgba(34, 197, 94, 0.20);
-}
-.fb-pin.is-resolved:hover .fb-pin-bubble {
-  box-shadow: 0 4px 20px rgba(34, 197, 94, 0.28), 0 0 0 2px rgba(34, 197, 94, 0.24);
+/* Resolved badge */
+.fb-pin.is-resolved .fb-pin-chip {
+  border-color: rgba(34, 197, 94, 0.35);
+  box-shadow: 0 4px 20px rgba(2, 6, 23, 0.52), 0 0 12px rgba(34, 197, 94, 0.10);
 }
 
 .fb-pin-resolved-label {

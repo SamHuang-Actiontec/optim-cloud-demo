@@ -1,24 +1,21 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { MessageSquarePlus, X, CheckCircle2, Trash2 } from 'lucide-react'
+import { MessageSquarePlus, X, CheckCircle2, Trash2, GripVertical, MessageSquare } from 'lucide-react'
 
 function DraggablePin({ pin, onMove, onResolve, onRemove }) {
-  const [cardOpen, setCardOpen] = useState(false)
+  const [expanded, setExpanded] = useState(false)
   const [dragging, setDragging] = useState(false)
   const offset = useRef({ x: 0, y: 0 })
   const didDrag = useRef(false)
   const cardRef = useRef(null)
 
-  // Close card on outside click
   useEffect(() => {
-    if (!cardOpen) return
+    if (!expanded) return
     function handleOutside(e) {
-      if (cardRef.current && !cardRef.current.contains(e.target)) {
-        setCardOpen(false)
-      }
+      if (cardRef.current && !cardRef.current.contains(e.target)) setExpanded(false)
     }
     document.addEventListener('mousedown', handleOutside)
     return () => document.removeEventListener('mousedown', handleOutside)
-  }, [cardOpen])
+  }, [expanded])
 
   const startDrag = useCallback((e) => {
     if (e.button !== 0) return
@@ -41,35 +38,53 @@ function DraggablePin({ pin, onMove, onResolve, onRemove }) {
     window.addEventListener('mouseup', onMouseUp)
   }, [pin, onMove])
 
-  function handleBubbleClick(e) {
+  function handleChipClick(e) {
     e.stopPropagation()
     if (didDrag.current) { didDrag.current = false; return }
-    setCardOpen(o => !o)
+    setExpanded(o => !o)
   }
+
+  const preview = pin.comment.length > 38 ? pin.comment.slice(0, 38) + '…' : pin.comment
 
   return (
     <div
       className={`fb-pin${dragging ? ' is-dragging' : ''}${pin.resolved ? ' is-resolved' : ''}`}
       style={{ left: pin.x, top: pin.y }}
-      onMouseDown={startDrag}
+      ref={cardRef}
     >
-      <div className="fb-pin-bubble" onClick={handleBubbleClick}>
-        {pin.resolved ? <CheckCircle2 size={14} /> : pin.from.charAt(0).toUpperCase()}
+      {/* Draggable chip */}
+      <div
+        className="fb-pin-chip"
+        onMouseDown={startDrag}
+        onClick={handleChipClick}
+      >
+        <span className="fb-pin-chip-grip"><GripVertical size={11} /></span>
+        <span className="fb-pin-chip-icon">
+          {pin.resolved ? <CheckCircle2 size={13} /> : <MessageSquare size={13} />}
+        </span>
+        <span className="fb-pin-chip-author">{pin.from}</span>
+        <span className="fb-pin-chip-preview">{preview}</span>
+        <button
+          className="fb-pin-chip-close"
+          onMouseDown={e => e.stopPropagation()}
+          onClick={e => { e.stopPropagation(); onRemove(pin.id) }}
+        >
+          <X size={10} />
+        </button>
       </div>
 
-      {cardOpen && (
+      {/* Expanded detail card */}
+      {expanded && (
         <div
           className="fb-pin-card"
-          ref={cardRef}
-          style={pin.y < 200 ? { bottom: 'auto', top: 40 } : {}}
+          style={pin.y < 180 ? { bottom: 'auto', top: 46 } : {}}
           onMouseDown={e => e.stopPropagation()}
         >
           <div className="fb-pin-card-header">
+            <span className="fb-pin-card-avatar">{pin.from.charAt(0).toUpperCase()}</span>
             <strong>{pin.from}</strong>
             {pin.resolved && <span className="fb-pin-resolved-label">Resolved</span>}
-            <button className="fb-pin-card-close" onClick={() => setCardOpen(false)}>
-              <X size={12} />
-            </button>
+            <button className="fb-pin-card-close" onClick={() => setExpanded(false)}><X size={12} /></button>
           </div>
           <p>{pin.comment}</p>
           <div className="fb-pin-actions">
@@ -78,16 +93,14 @@ function DraggablePin({ pin, onMove, onResolve, onRemove }) {
                 className="fb-pin-action-btn is-resolve"
                 onClick={e => { e.stopPropagation(); onResolve(pin.id) }}
               >
-                <CheckCircle2 size={11} />
-                Resolve
+                <CheckCircle2 size={11} /> Resolve
               </button>
             )}
             <button
               className="fb-pin-action-btn is-delete"
-              onClick={e => { e.stopPropagation(); onRemove(pin.id); setCardOpen(false) }}
+              onClick={e => { e.stopPropagation(); onRemove(pin.id); setExpanded(false) }}
             >
-              <Trash2 size={11} />
-              Delete
+              <Trash2 size={11} /> Delete
             </button>
           </div>
         </div>
@@ -110,8 +123,8 @@ export default function FloatingFeedback() {
       from: from.trim() || 'Viewer',
       comment: text,
       resolved: false,
-      x: Math.max(60, window.innerWidth - 320),
-      y: 80 + (prev.length % 8) * 56,
+      x: Math.max(80, window.innerWidth / 2 - 100),
+      y: 120 + (prev.length % 6) * 70,
     }])
     setFrom('')
     setComment('')
@@ -146,9 +159,7 @@ export default function FloatingFeedback() {
         <div className="fb-panel">
           <div className="fb-panel-header">
             <span>Leave a comment</span>
-            <button className="fb-panel-close" onClick={() => setOpen(false)}>
-              <X size={13} />
-            </button>
+            <button className="fb-panel-close" onClick={() => setOpen(false)}><X size={13} /></button>
           </div>
           <input
             className="fb-field"
@@ -164,7 +175,7 @@ export default function FloatingFeedback() {
             onChange={e => setComment(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) save() }}
           />
-          <p className="fb-hint">After saving, drag the pin to the relevant spot.</p>
+          <p className="fb-hint">After saving, drag the comment chip to the relevant spot.</p>
           <div className="fb-panel-actions">
             <button className="fb-btn fb-cancel" onClick={() => setOpen(false)}>Cancel</button>
             <button className="fb-btn fb-save" onClick={save} disabled={!comment.trim()}>
