@@ -70,7 +70,7 @@ function AppShell() {
       <div className="flex flex-1 overflow-hidden">
         <Sidebar activeItem={activeNav} onNavigate={navigateTo} />
         <main
-          className={`flex-1 flex flex-col overflow-hidden${activeNav !== 'dashboard' ? ' page-zoom' : ''}`}
+          className="flex-1 flex flex-col overflow-hidden page-zoom"
         >
           {activeNav === 'dashboard' ? (
             <DashboardPage key={navCount} onLog={log} />

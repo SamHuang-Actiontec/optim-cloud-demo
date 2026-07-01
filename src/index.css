@@ -4863,9 +4863,9 @@ a:hover {
   --noc-tertiary-text: rgb(100 116 139);
 }
 
-/* ── Non-dashboard page scale ──────────────────────────────────────────── */
+/* ── Global page scale ──────────────────────────────────────────────────── */
 .page-zoom {
-  zoom: 0.75;
+  zoom: 0.86;
 }
 
 /* ── Floating Feedback widget ──────────────────────────────────────────── */
