@@ -62,7 +62,7 @@ function AppShell() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-noc-bg overflow-hidden" style={{ zoom: 1.15 }}>
+    <div className="flex flex-col h-screen bg-noc-bg overflow-hidden" style={{ zoom: 1.265 }}>
       <TopBar
         operator={operator}
         breadcrumb={breadcrumbs[activeNav] || null}
