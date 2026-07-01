@@ -9,8 +9,11 @@ import {
   Radio,
   RefreshCw,
   Router,
+  Send,
   ShieldCheck,
+  Sparkles,
   Wifi,
+  X,
   Zap,
 } from 'lucide-react'
 
@@ -344,7 +347,12 @@ export default function OperatorAIDiagnosis({
   const [diagnosisRun, setDiagnosisRun] = useState(0)
   const [completedActions, setCompletedActions] = useState({})
   const [actionFeedback, setActionFeedback] = useState(null)
+  const [askAiOpen, setAskAiOpen] = useState(false)
+  const [askAiInput, setAskAiInput] = useState('')
+  const [askAiMessages, setAskAiMessages] = useState([])
+  const [askAiTyping, setAskAiTyping] = useState(false)
   const diagnoseTimerRef = useRef(null)
+  const askAiEndRef = useRef(null)
 
   const baseHealthScore = clamp(ai?.healthScore ?? 50, 0, 100)
   const normalizedStatus = STATUS_MAP[ai?.status] || 'unknown'
@@ -440,6 +448,70 @@ export default function OperatorAIDiagnosis({
     setSelectedKey(domain.level === 'healthy' ? 'overall' : domain.key)
   }
 
+  function buildAiReply(question) {
+    const q = question.toLowerCase()
+    const worstDomain = [...domains].sort((a, b) => a.score - b.score)[0]
+    const degradedDomains = domains.filter((d) => d.level !== 'healthy')
+
+    if (q.includes('root cause') || q.includes('why') || q.includes('problem')) {
+      return degradedDomains.length
+        ? `The primary root cause is in the **${worstDomain.label}** domain (score ${worstDomain.score}/100). ${worstDomain.degraded} ${worstDomain.action}`
+        : 'All six domains are within healthy thresholds. No root cause detected at this time.'
+    }
+    if (q.includes('fix') || q.includes('resolv') || q.includes('action')) {
+      const actions = degradedDomains.map((d) => `• **${d.label}**: ${d.action}`).join('\n')
+      return actions || 'No remediation needed — network health looks good across all domains.'
+    }
+    if (q.includes('speed') || q.includes('throughput') || q.includes('bandwidth')) {
+      const cap = domains.find((d) => d.key === 'capacity')
+      return cap?.level !== 'healthy'
+        ? `Capacity domain is degraded (score ${cap.score}/100). ${cap.degraded} Recommend: ${cap.action}`
+        : 'WAN throughput and radio headroom look adequate. Run a speed test to confirm against the subscribed tier.'
+    }
+    if (q.includes('wifi') || q.includes('wi-fi') || q.includes('channel') || q.includes('signal')) {
+      const env = domains.find((d) => d.key === 'environment')
+      const cov = domains.find((d) => d.key === 'coverage')
+      const parts = []
+      if (env?.level !== 'healthy') parts.push(`RF environment is degraded — ${env.degraded}`)
+      if (cov?.level !== 'healthy') parts.push(`Coverage path issue — ${cov.degraded}`)
+      return parts.length ? parts.join(' ') : 'Wi-Fi environment and coverage both look healthy. No channel interference or signal issues detected.'
+    }
+    if (q.includes('reboot') || q.includes('stable') || q.includes('crash')) {
+      const stab = domains.find((d) => d.key === 'stability')
+      return stab?.level !== 'healthy'
+        ? `Stability domain is degraded (score ${stab.score}/100). ${stab.degraded} ${stab.action}`
+        : 'No reboot events or stability issues detected in the current window.'
+    }
+    if (q.includes('summar') || q.includes('overview') || q.includes('status')) {
+      const summary = degradedDomains.length
+        ? `Overall health: **${overallDisplayLevel.toUpperCase()}** (${healthScore}/100). Degraded domains: ${degradedDomains.map((d) => `${d.label} (${d.score})`).join(', ')}.`
+        : `Overall health: **HEALTHY** (${healthScore}/100). All six domains are within normal operating range.`
+      return summary
+    }
+    return `Based on the six-domain analysis, overall health is **${healthScore}/100** (${overallDisplayLevel}). ${degradedDomains.length ? `Focus areas: ${degradedDomains.map((d) => d.label).join(', ')}. The highest-impact issue is in ${worstDomain.label}: ${worstDomain.diagnosis}` : 'All domains are healthy.'}`
+  }
+
+  function sendAskAi(question) {
+    if (!question.trim()) return
+    const userMsg = { role: 'user', text: question.trim() }
+    setAskAiMessages((prev) => [...prev, userMsg])
+    setAskAiInput('')
+    setAskAiTyping(true)
+    setTimeout(() => {
+      const reply = buildAiReply(question)
+      setAskAiMessages((prev) => [...prev, { role: 'ai', text: reply }])
+      setAskAiTyping(false)
+      setTimeout(() => askAiEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
+    }, 900)
+  }
+
+  const QUICK_QUESTIONS = [
+    'What is the root cause?',
+    'How do I fix this?',
+    'Why is Wi-Fi slow?',
+    'Give me a summary',
+  ]
+
   function runRediagnose() {
     if (isDiagnosing) return
     onRefresh?.()
@@ -481,22 +553,91 @@ export default function OperatorAIDiagnosis({
           )}
         </div>
 
-        <div className="operator-rediagnose-control">
+        <div className="operator-ai-header-right">
           <button
             type="button"
-            onClick={runRediagnose}
-            className={`operator-refresh-button ${isDiagnosing ? 'is-running' : ''}`}
-            disabled={isDiagnosing}
+            onClick={() => { setAskAiOpen(true); if (askAiMessages.length === 0) setAskAiMessages([{ role: 'ai', text: `I've analyzed this network. Overall health is **${healthScore}/100** (${overallDisplayLevel}). ${domains.filter(d => d.level !== 'healthy').length ? `I detected issues in: ${domains.filter(d => d.level !== 'healthy').map(d => d.label).join(', ')}. Ask me anything about root cause, fixes, or specific domains.` : 'All six domains look healthy. Ask me anything about this network.'}` }]) }}
+            className="ask-ai-button"
           >
-            <RefreshCw size={13} />
-            {isDiagnosing ? `Analyzing ${diagnoseProgress}%` : 'Re-diagnose'}
+            <Sparkles size={13} className="ask-ai-sparkle" />
+            Ask AI
           </button>
-          <span>{isDiagnosing ? 'AI diagnosis in progress' : hasDiagnosisResult && diagnosisRun === 0 ? 'Diagnosis ready' : diagnosisRun > 0 ? 'Re-diagnosed just now' : 'Ready'}</span>
-          <div className="operator-rediagnose-track" aria-hidden="true">
-            <i style={{ width: `${isDiagnosing ? diagnoseProgress : diagnosisRun > 0 ? 100 : 0}%` }} />
+          <div className="operator-rediagnose-control">
+            <button
+              type="button"
+              onClick={runRediagnose}
+              className={`operator-refresh-button ${isDiagnosing ? 'is-running' : ''}`}
+              disabled={isDiagnosing}
+            >
+              <RefreshCw size={13} />
+              {isDiagnosing ? `Analyzing ${diagnoseProgress}%` : 'Re-diagnose'}
+            </button>
+            <span>{isDiagnosing ? 'AI diagnosis in progress' : hasDiagnosisResult && diagnosisRun === 0 ? 'Diagnosis ready' : diagnosisRun > 0 ? 'Re-diagnosed just now' : 'Ready'}</span>
+            <div className="operator-rediagnose-track" aria-hidden="true">
+              <i style={{ width: `${isDiagnosing ? diagnoseProgress : diagnosisRun > 0 ? 100 : 0}%` }} />
+            </div>
           </div>
         </div>
       </header>
+
+      {askAiOpen && (
+        <div className="ask-ai-overlay" onClick={(e) => { if (e.target === e.currentTarget) setAskAiOpen(false) }}>
+          <div className="ask-ai-dialog">
+            <div className="ask-ai-dialog-header">
+              <div className="ask-ai-dialog-title">
+                <Sparkles size={15} className="ask-ai-sparkle" />
+                <span>AI Network Assistant</span>
+                <span className="ask-ai-badge">LIVE</span>
+              </div>
+              <button type="button" onClick={() => setAskAiOpen(false)} className="ask-ai-close"><X size={15} /></button>
+            </div>
+
+            <div className="ask-ai-messages">
+              {askAiMessages.map((msg, i) => (
+                <div key={i} className={`ask-ai-msg ask-ai-msg-${msg.role}`}>
+                  {msg.role === 'ai' && <span className="ask-ai-msg-icon"><Bot size={13} /></span>}
+                  <div className="ask-ai-msg-bubble">
+                    {msg.text.split('\n').map((line, j) => (
+                      <p key={j}>{line.split(/\*\*(.*?)\*\*/g).map((part, k) =>
+                        k % 2 === 1 ? <strong key={k}>{part}</strong> : part
+                      )}</p>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              {askAiTyping && (
+                <div className="ask-ai-msg ask-ai-msg-ai">
+                  <span className="ask-ai-msg-icon"><Bot size={13} /></span>
+                  <div className="ask-ai-msg-bubble ask-ai-typing">
+                    <span /><span /><span />
+                  </div>
+                </div>
+              )}
+              <div ref={askAiEndRef} />
+            </div>
+
+            <div className="ask-ai-quick">
+              {QUICK_QUESTIONS.map((q) => (
+                <button key={q} type="button" className="ask-ai-chip" onClick={() => sendAskAi(q)}>{q}</button>
+              ))}
+            </div>
+
+            <div className="ask-ai-input-row">
+              <input
+                type="text"
+                className="ask-ai-input"
+                placeholder="Ask about root cause, fixes, Wi-Fi, stability…"
+                value={askAiInput}
+                onChange={(e) => setAskAiInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') sendAskAi(askAiInput) }}
+              />
+              <button type="button" className="ask-ai-send" onClick={() => sendAskAi(askAiInput)} disabled={!askAiInput.trim()}>
+                <Send size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="operator-ai-grid">
         <div className="operator-hex-panel">

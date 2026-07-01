@@ -709,7 +709,7 @@ function FirmwareVerification({ onOpenFirmware }) {
           {FW_HEALTH.map((item, index) => {
             const left = 8 + ((index / Math.max(FW_HEALTH.length - 1, 1)) * 84)
             const top = 8 + (((yMax - item.postHealth) / (yMax - yMin)) * 72)
-            const size = Math.max(26, Math.min(46, Math.sqrt(item.count) * 1.4))
+            const size = Math.max(20, Math.min(36, Math.sqrt(item.count) * 1.1))
             return (
               <button
                 key={item.label}
