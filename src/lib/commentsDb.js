@@ -58,6 +58,7 @@ function rowToPin(r) {
     resolved: r.status === 'resolved',
     x: r.x_pos,
     y: r.y_pos,
+    page: r.page_url || null,
   }
 }
 
@@ -80,12 +81,12 @@ export async function saveComment(pin) {
       status: 'pending',
       x_pos: pin.x,
       y_pos: pin.y,
-      page_url: window.location.href,
+      page_url: pin.page || 'app',
     })
     return rowToPin(rows[0])
   }
   const all = lsLoad()
-  all.push({ ...pin, status: 'pending', resolved: false })
+  all.push({ ...pin, status: 'pending', resolved: false, page: pin.page || 'app' })
   lsSave(all)
   return pin
 }

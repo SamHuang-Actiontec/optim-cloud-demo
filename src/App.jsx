@@ -28,12 +28,21 @@ function AppShell() {
   const [referrer, setReferrer] = useState(null)
   const [navCount, setNavCount] = useState(0)
   const [networkLaunch, setNetworkLaunch] = useState(null)
+  const [currentCustomerSerial, setCurrentCustomerSerial] = useState(null)
   const { log, operator } = useAuditLog()
   const { role } = useRole()
+
+  // Unique key identifying the exact page the user is viewing — used by
+  // FloatingFeedback to scope comment pins so they only appear on the page where
+  // they were created (e.g. "network:JG1250100048" vs "dashboard").
+  const pageKey = activeNav === 'network' && currentCustomerSerial
+    ? `network:${currentCustomerSerial}`
+    : activeNav
 
   function navigateTo(page) {
     setReferrer(null)
     setNetworkLaunch(null)
+    if (page !== 'network') setCurrentCustomerSerial(null)
     setActiveNav(page)
     if (page === 'dashboard') setNavCount(c => c + 1)
   }
@@ -41,6 +50,7 @@ function AppShell() {
   function navigateBack() {
     const dest = referrer || 'dashboard'
     setNetworkLaunch(null)
+    if (dest !== 'network') setCurrentCustomerSerial(null)
     setActiveNav(dest)
     setReferrer(null)
     if (dest === 'dashboard') setNavCount(c => c + 1)
@@ -49,12 +59,14 @@ function AppShell() {
   function openNetworkFromSubscriber(customer) {
     setReferrer('subscriber')
     setNetworkLaunch({ customer, token: Date.now() })
+    setCurrentCustomerSerial(customer.serial || customer.id || null)
     setActiveNav('network')
   }
 
   function openNetworkFromDashboard(customer) {
     setReferrer('dashboard')
     setNetworkLaunch({ customer, token: Date.now() })
+    setCurrentCustomerSerial(customer.serial || customer.id || null)
     setActiveNav('network')
   }
 
@@ -87,6 +99,7 @@ function AppShell() {
                 referrer={referrer}
                 onNavigateBack={navigateBack}
                 initialCustomer={networkLaunch}
+                onCustomerChange={setCurrentCustomerSerial}
               />
             ) : (
               <NetworkPage
@@ -94,6 +107,7 @@ function AppShell() {
                 referrer={referrer}
                 onNavigateBack={navigateBack}
                 initialCustomer={networkLaunch}
+                onCustomerChange={setCurrentCustomerSerial}
               />
             )
           ) : activeNav === 'subscriber' ? (
@@ -112,7 +126,7 @@ function AppShell() {
           )}
         </main>
       </div>
-      <FloatingFeedback />
+      <FloatingFeedback pageKey={pageKey} />
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import StatsBar from './StatsBar'
 import SearchPanel from './SearchPanel'
@@ -17,10 +17,19 @@ export default function NetworkPage({
   referrer,
   onNavigateBack,
   initialCustomer,
+  onCustomerChange,
   DetailPageComponent = CustomerDetailPage,
 }) {
   const [recentSearches, setRecentSearches] = useState(() => initialCustomer?.customer ? [initialCustomer.customer] : [])
   const [selectedCustomer, setSelectedCustomer] = useState(() => initialCustomer?.customer || null)
+
+  // Report initial customer to App so pageKey is correct on first render
+  useEffect(() => {
+    if (initialCustomer?.customer) {
+      onCustomerChange?.(initialCustomer.customer.serial || initialCustomer.customer.id || null)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   function addRecent(customer) {
     setRecentSearches((prev) => {
@@ -32,6 +41,16 @@ export default function NetworkPage({
   function handleSelectCustomer(customer) {
     addRecent(customer)
     setSelectedCustomer(customer)
+    onCustomerChange?.(customer.serial || customer.id || null)
+  }
+
+  function handleBack() {
+    onCustomerChange?.(null)
+    if (referrer && onNavigateBack) {
+      onNavigateBack()
+    } else {
+      setSelectedCustomer(null)
+    }
   }
 
   // If a customer has been selected, show the full detail page
@@ -39,13 +58,7 @@ export default function NetworkPage({
     return (
       <DetailPageComponent
         customer={selectedCustomer}
-        onBack={() => {
-          if (referrer && onNavigateBack) {
-            onNavigateBack()
-          } else {
-            setSelectedCustomer(null)
-          }
-        }}
+        onBack={handleBack}
       />
     )
   }

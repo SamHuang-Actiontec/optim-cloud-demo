@@ -118,7 +118,7 @@ function DraggablePin({ pin, onMove, onMoveEnd, onResolve, onRemove }) {
   )
 }
 
-export default function FloatingFeedback() {
+export default function FloatingFeedback({ pageKey = 'app' }) {
   const [open, setOpen] = useState(false)
   const [panelOpen, setPanelOpen] = useState(false)
   const [from, setFrom] = useState('')
@@ -126,6 +126,9 @@ export default function FloatingFeedback() {
   const [pins, setPins] = useState([])
   const [loading, setLoading] = useState(true)
 
+  // Only pins created on this exact page are shown as chips on-screen.
+  // The admin panel still shows ALL comments regardless of page.
+  const visiblePins = pins.filter(p => !p.page || p.page === pageKey)
   const pendingCount = pins.filter(p => p.status === 'pending' || (!p.status && !p.resolved)).length
 
   // Load persisted comments on mount
@@ -145,8 +148,9 @@ export default function FloatingFeedback() {
       comment: text,
       status: 'pending',
       resolved: false,
+      page: pageKey,
       x: Math.max(80, window.innerWidth / 2 - 100),
-      y: 120 + (pins.length % 6) * 70,
+      y: 120 + (visiblePins.length % 6) * 70,
     }
     const saved = await saveComment(newPin).catch(() => newPin)
     setPins(prev => [...prev, saved])
@@ -181,7 +185,7 @@ export default function FloatingFeedback() {
         onClose={() => setPanelOpen(false)}
       />
 
-      {!loading && pins.map(pin => (
+      {!loading && visiblePins.map(pin => (
         <DraggablePin
           key={pin.id}
           pin={pin}
