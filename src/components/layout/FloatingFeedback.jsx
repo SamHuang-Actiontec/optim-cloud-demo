@@ -127,8 +127,9 @@ export default function FloatingFeedback({ pageKey = 'app' }) {
   const [loading, setLoading] = useState(true)
 
   // Only pins created on this exact page are shown as chips on-screen.
+  // Pins without a page field (legacy data) are intentionally hidden everywhere.
   // The admin panel still shows ALL comments regardless of page.
-  const visiblePins = pins.filter(p => !p.page || p.page === pageKey)
+  const visiblePins = pins.filter(p => p.page === pageKey)
   const pendingCount = pins.filter(p => p.status === 'pending' || (!p.status && !p.resolved)).length
 
   // Load persisted comments on mount
